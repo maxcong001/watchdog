@@ -9,33 +9,20 @@
 #include <thread>
 #include <chrono>
 
-boost::asio::io_service ioService;
-
-boost::asio::deadline_timer t(ioService, boost::posix_time::seconds(1));
-
-void print(const boost::system::error_code & /*e*/)
-{
-    std::cout << "Hello, world!\n";
-    t.expires_from_now(boost::posix_time::seconds(1));
-    t.async_wait(print);
-}
-
 int main()
 {
     set_log_level(logger_iface::log_level::debug);
 
-    std::thread asio_thread([&]() {
-        __LOG(debug, "ioservice is running");
-        ioService.run();
-    });
-    t.async_wait(print);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    boost::asio::io_service ioService;
     watchDog wd_test(ioService);
     wd_test.start(2, 2, []() {
         __LOG(debug, "heart beat lost");
     });
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::thread asio_thread([&]() {
+        __LOG(debug, "ioservice is running");
+        ioService.run();
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     __LOG(debug, "now peg watch dog");
     wd_test.peg();
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));

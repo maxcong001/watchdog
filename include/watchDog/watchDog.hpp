@@ -40,9 +40,13 @@ class watchDog
             _peg_timer.expires_from_now(boost::posix_time::seconds(_interval));
             _peg_timer.async_wait(boost::bind(&watchDog::handle_timer, this, _1));
         }
+        else if (ec == boost::asio::error::operation_aborted)
+        {
+            __LOG(debug, "timer canceled");
+        }
         else
         {
-            __LOG(error, "timer error");
+            __LOG(debug, "timer error");
         }
     }
     bool stop()
@@ -56,7 +60,6 @@ class watchDog
     {
         __LOG(debug, "peg watch dog");
         _lost_times = 0;
-
         _peg_timer.expires_from_now(boost::posix_time::seconds(_interval));
         _peg_timer.async_wait(boost::bind(&watchDog::handle_timer, this, _1));
 
